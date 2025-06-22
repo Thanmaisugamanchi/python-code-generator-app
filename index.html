@@ -173,28 +173,22 @@
         const messageBox = document.getElementById('messageBox');
 
         /**
-         * IMPORTANT: Get the API Key from the Vercel environment variable.
-         * In a client-side app deployed on Vercel, environment variables
-         * prefixed with VITE_, REACT_APP_, NEXT_PUBLIC_, or similar are exposed.
-         * For simple static sites, Vercel just exposes them as `process.env.YOUR_VAR_NAME`
-         * which JavaScript can access if set up in Vercel project settings.
+         * IMPORTANT: Directly assign your Gemini API Key here.
+         * Replace "YOUR_GEMINI_API_KEY_HERE" with your actual key.
+         *
+         * WARNING: Directly embedding your API key in client-side code is NOT recommended
+         * for production applications, as it exposes your key. For a simple personal project,
+         * or if you understand the risks, it can work. For robust solutions, consider
+         * using a server-side proxy (e.g., Vercel Serverless Function) to hide your key.
          */
-        const apiKey = import.meta.env.VITE_GEMINI_API_KEY || ''; // Use Vercel's injected env var for client-side builds. If this doesn't work directly, it implies Vercel requires a specific build tool config for `import.meta.env`. For a simple HTML/JS, it's safer to rely on Vercel injecting it via a build step if available or needing a serverless function proxy. Let's try `import.meta.env` first. If that fails, the user would need to use a serverless function, which is more complex.
-        // A more robust way for pure static sites without a build step:
-        // You would typically have a small build script that inserts the env var.
-        // For simplicity, let's assume Vercel provides a way for client-side apps to access them.
-        // If this still gives an error, the solution involves a Vercel Serverless Function to proxy the API call,
-        // which keeps the key truly server-side. For now, let's try this common client-side approach.
+        const apiKey = "AIzaSyDyk9YrDYZ7smvkTCk6sXtlrxcLzyBoCRk"; // <<< REPLACE THIS WITH YOUR ACTUAL API KEY
 
-        // Fallback for local testing if Vercel doesn't automatically expose process.env in a direct static build
-        // For local testing without Vercel's build process, you might uncomment this line
-        // and replace 'YOUR_LOCAL_GEMINI_API_KEY_HERE' with your actual key for testing.
-        // However, DO NOT commit your actual API key to GitHub.
-        // const apiKey = 'YOUR_LOCAL_GEMINI_API_KEY_HERE';
-
-        if (!apiKey) {
-            console.warn("GEMINI_API_KEY is not set. API calls may fail.");
-            showMessage("API Key is missing. Code generation will not work. Please set GEMINI_API_KEY in Vercel environment variables.", "error");
+        if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
+            console.error("API Key is missing or default. Please replace 'YOUR_GEMINI_API_KEY_HERE' in index.html with your actual Gemini API key.");
+            showMessage("API Key is missing or default. Please check your index.html file and replace 'YOUR_GEMINI_API_KEY_HERE' with your actual Gemini API key.", "error");
+            // Disable the button to prevent API calls without a valid key
+            generateBtn.disabled = true;
+            generateBtn.classList.add('opacity-50', 'cursor-not-allowed'); // Visually indicate it's disabled
         }
 
 
@@ -215,14 +209,14 @@
          * Handles the generation of Python code based on user input and options.
          */
         generateBtn.addEventListener('click', async () => {
-            const question = questionInput.value.trim();
-            if (!question) {
-                showMessage('Please enter a question or description for the code.', 'error');
+            // If the button is disabled due to missing API key, prevent execution
+            if (generateBtn.disabled) {
                 return;
             }
 
-            if (!apiKey) {
-                showMessage("API Key is missing. Cannot generate code.", "error");
+            const question = questionInput.value.trim();
+            if (!question) {
+                showMessage('Please enter a question or description for the code.', 'error');
                 return;
             }
 
@@ -246,7 +240,7 @@
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
                 const payload = { contents: chatHistory };
-                // The apiKey is now fetched from the Vercel environment variable
+                // The apiKey is now directly used from the variable
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 const response = await fetch(apiUrl, {
