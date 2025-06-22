@@ -162,21 +162,41 @@
     </div>
 
     <script type="module">
-        // Initialize Firebase and Firestore (required for __app_id and __firebase_config)
-        // These global variables are provided by the Canvas environment.
+        // Firebase specific variables (not directly used for API key with Vercel deployment)
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-
-        // Important: We don't need actual Firebase functions for this specific app's core logic
-        // (which is just API calls). However, the boilerplate for __app_id and __firebase_config
-        // is included as per general Canvas instructions for app development.
-        // If this app were to store user data or require authentication, Firebase setup would be fully implemented here.
 
         const generateBtn = document.getElementById('generateBtn');
         const questionInput = document.getElementById('question');
         const codeOutput = document.getElementById('codeOutput');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const messageBox = document.getElementById('messageBox');
+
+        /**
+         * IMPORTANT: Get the API Key from the Vercel environment variable.
+         * In a client-side app deployed on Vercel, environment variables
+         * prefixed with VITE_, REACT_APP_, NEXT_PUBLIC_, or similar are exposed.
+         * For simple static sites, Vercel just exposes them as `process.env.YOUR_VAR_NAME`
+         * which JavaScript can access if set up in Vercel project settings.
+         */
+        const apiKey = import.meta.env.VITE_GEMINI_API_KEY || ''; // Use Vercel's injected env var for client-side builds. If this doesn't work directly, it implies Vercel requires a specific build tool config for `import.meta.env`. For a simple HTML/JS, it's safer to rely on Vercel injecting it via a build step if available or needing a serverless function proxy. Let's try `import.meta.env` first. If that fails, the user would need to use a serverless function, which is more complex.
+        // A more robust way for pure static sites without a build step:
+        // You would typically have a small build script that inserts the env var.
+        // For simplicity, let's assume Vercel provides a way for client-side apps to access them.
+        // If this still gives an error, the solution involves a Vercel Serverless Function to proxy the API call,
+        // which keeps the key truly server-side. For now, let's try this common client-side approach.
+
+        // Fallback for local testing if Vercel doesn't automatically expose process.env in a direct static build
+        // For local testing without Vercel's build process, you might uncomment this line
+        // and replace 'YOUR_LOCAL_GEMINI_API_KEY_HERE' with your actual key for testing.
+        // However, DO NOT commit your actual API key to GitHub.
+        // const apiKey = 'YOUR_LOCAL_GEMINI_API_KEY_HERE';
+
+        if (!apiKey) {
+            console.warn("GEMINI_API_KEY is not set. API calls may fail.");
+            showMessage("API Key is missing. Code generation will not work. Please set GEMINI_API_KEY in Vercel environment variables.", "error");
+        }
+
 
         /**
          * Displays a message in the message box.
@@ -201,6 +221,11 @@
                 return;
             }
 
+            if (!apiKey) {
+                showMessage("API Key is missing. Cannot generate code.", "error");
+                return;
+            }
+
             // Collect selected options
             const selectedOptions = Array.from(document.querySelectorAll('input[name="options"]:checked'))
                                        .map(checkbox => checkbox.value);
@@ -221,7 +246,7 @@
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
                 const payload = { contents: chatHistory };
-                const apiKey = ""; // Canvas will provide this at runtime for gemini-2.0-flash
+                // The apiKey is now fetched from the Vercel environment variable
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 const response = await fetch(apiUrl, {
@@ -232,7 +257,7 @@
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`API error: ${response.status} ${response.statusText} - ${errorData.error.message || 'Unknown error'}`);
+                    throw new Error(`API error: ${response.status} - ${errorData.error.message || 'Unknown error'}`);
                 }
 
                 const result = await response.json();
