@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Code Generator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for better aesthetics and font */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Ensure it takes full viewport height */
+            margin: 0;
+            padding: 20px; /* Add some padding around the content */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+        .container {
+            background-color: #ffffff; /* White background for the card */
+            border-radius: 1rem; /* More rounded corners */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Softer shadow */
+            padding: 2.5rem; /* More padding inside */
+            max-width: 900px; /* Max width for desktop */
+            width: 100%; /* Full width on smaller screens */
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* Space between sections */
+        }
+        textarea {
+            resize: vertical; /* Allow vertical resizing */
+            min-height: 120px; /* Minimum height for the textarea */
+        }
+        pre {
+            background-color: #2d2d2d; /* Dark background for code block */
+            color: #f8f8f2; /* Light text color */
+            padding: 1.5rem;
+            border-radius: 0.75rem; /* Rounded corners for code block */
+            overflow-x: auto; /* Enable horizontal scrolling for long lines */
+            font-family: 'Fira Code', 'Cascadia Code', monospace; /* Monospace font for code */
+            font-size: 0.9rem;
+            white-space: pre-wrap; /* Wrap long lines */
+            word-break: break-all; /* Break words to prevent overflow */
+        }
+        /* Custom checkbox styling for better appearance */
+        .checkbox-container input[type="checkbox"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            display: inline-block;
+            position: relative;
+            height: 20px;
+            width: 20px;
+            background-color: #cbd5e0; /* Light gray */
+            border-radius: 0.375rem; /* rounded-md */
+            border: 1px solid #a0aec0; /* Border color */
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            vertical-align: middle;
+        }
+
+        .checkbox-container input[type="checkbox"]:checked {
+            background-color: #4f46e5; /* Indigo-600 */
+            border-color: #4f46e5;
+        }
+
+        .checkbox-container input[type="checkbox"]:checked::after {
+            content: '\2713'; /* Checkmark character */
+            display: block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            color: white;
+        }
+        .checkbox-container label {
+            vertical-align: middle;
+        }
+
+        /* Message box styling */
+        .message-box {
+            display: none; /* Hidden by default */
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-top: 1rem;
+            font-weight: 500;
+            color: #4a5568; /* Gray-700 */
+        }
+        .message-box.error {
+            background-color: #fee2e2; /* Red-100 */
+            color: #ef4444; /* Red-500 */
+        }
+        .message-box.success {
+            background-color: #d1fae5; /* Green-100 */
+            color: #10b981; /* Green-500 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-4">Python Code Generator</h1>
+
+        <!-- User Question Input -->
+        <div>
+            <label for="question" class="block text-gray-700 text-lg font-medium mb-2">Describe the Python code you need:</label>
+            <textarea id="question" rows="5" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all duration-200" placeholder="e.g., 'A function to calculate the factorial of a number' or 'A script to read a CSV file and print its contents'"></textarea>
+        </div>
+
+        <!-- Options for Code Generation -->
+        <div>
+            <label class="block text-gray-700 text-lg font-medium mb-2">Options (Optional):</label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="flex items-center space-x-2 checkbox-container">
+                    <input type="checkbox" id="useLoops" name="options" value="use loops" class="form-checkbox h-5 w-5 text-indigo-600 rounded">
+                    <label for="useLoops" class="text-gray-700 select-none">Use Loops</label>
+                </div>
+                <div class="flex items-center space-x-2 checkbox-container">
+                    <input type="checkbox" id="useFunctions" name="options" value="use functions" class="form-checkbox h-5 w-5 text-indigo-600 rounded">
+                    <label for="useFunctions" class="text-gray-700 select-none">Use Functions</label>
+                </div>
+                <div class="flex items-center space-x-2 checkbox-container">
+                    <input type="checkbox" id="useClasses" name="options" value="use classes" class="form-checkbox h-5 w-5 text-indigo-600 rounded">
+                    <label for="useClasses" class="text-gray-700 select-none">Use Classes</label>
+                </div>
+                <div class="flex items-center space-x-2 checkbox-container">
+                    <input type="checkbox" id="handleErrors" name="options" value="include error handling" class="form-checkbox h-5 w-5 text-indigo-600 rounded">
+                    <label for="handleErrors" class="text-gray-700 select-none">Include Error Handling</label>
+                </div>
+                <div class="flex items-center space-x-2 checkbox-container">
+                    <input type="checkbox" id="addComments" name="options" value="add comments" class="form-checkbox h-5 w-5 text-indigo-600 rounded">
+                    <label for="addComments" class="text-gray-700 select-none">Add Comments</label>
+                </div>
+                <div class="flex items-center space-x-2 checkbox-container">
+                    <input type="checkbox" id="fileIO" name="options" value="perform file I/O" class="form-checkbox h-5 w-5 text-indigo-600 rounded">
+                    <label for="fileIO" class="text-gray-700 select-none">Perform File I/O</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generate Code Button -->
+        <button id="generateBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+            Generate Python Code
+        </button>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="hidden text-center text-indigo-600 text-lg font-semibold animate-pulse">
+            Generating code... Please wait.
+        </div>
+
+        <!-- Message Box -->
+        <div id="messageBox" class="message-box"></div>
+
+        <!-- Generated Code Output -->
+        <div>
+            <label class="block text-gray-700 text-lg font-medium mb-2">Generated Code:</label>
+            <pre id="codeOutput" class="text-gray-900"></pre>
+        </div>
+    </div>
+
+    <script type="module">
+        // Initialize Firebase and Firestore (required for __app_id and __firebase_config)
+        // These global variables are provided by the Canvas environment.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+
+        // Important: We don't need actual Firebase functions for this specific app's core logic
+        // (which is just API calls). However, the boilerplate for __app_id and __firebase_config
+        // is included as per general Canvas instructions for app development.
+        // If this app were to store user data or require authentication, Firebase setup would be fully implemented here.
+
+        const generateBtn = document.getElementById('generateBtn');
+        const questionInput = document.getElementById('question');
+        const codeOutput = document.getElementById('codeOutput');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const messageBox = document.getElementById('messageBox');
+
+        /**
+         * Displays a message in the message box.
+         * @param {string} message - The message to display.
+         * @param {string} type - The type of message ('success' or 'error').
+         */
+        function showMessage(message, type) {
+            messageBox.textContent = message;
+            messageBox.className = `message-box ${type} block`;
+            setTimeout(() => {
+                messageBox.className = `message-box ${type} hidden`;
+            }, 5000); // Hide after 5 seconds
+        }
+
+        /**
+         * Handles the generation of Python code based on user input and options.
+         */
+        generateBtn.addEventListener('click', async () => {
+            const question = questionInput.value.trim();
+            if (!question) {
+                showMessage('Please enter a question or description for the code.', 'error');
+                return;
+            }
+
+            // Collect selected options
+            const selectedOptions = Array.from(document.querySelectorAll('input[name="options"]:checked'))
+                                       .map(checkbox => checkbox.value);
+
+            // Construct the prompt for the Gemini API
+            let prompt = `Generate Python code for the following request:\n"${question}"`;
+            if (selectedOptions.length > 0) {
+                prompt += `\n\nConstraints/Preferences:\n- ${selectedOptions.join('\n- ')}.`;
+            }
+            prompt += `\n\nProvide only the Python code, without any introductory or concluding text, explanations, or backticks.`; // Crucial for clean output
+
+            loadingIndicator.classList.remove('hidden'); // Show loading indicator
+            codeOutput.textContent = ''; // Clear previous output
+            messageBox.classList.add('hidden'); // Hide any previous messages
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will provide this at runtime for gemini-2.0-flash
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API error: ${response.status} ${response.statusText} - ${errorData.error.message || 'Unknown error'}`);
+                }
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const generatedText = result.candidates[0].content.parts[0].text;
+                    codeOutput.textContent = generatedText;
+                    showMessage('Code generated successfully!', 'success');
+                } else {
+                    codeOutput.textContent = 'Could not generate code. Please try a different prompt.';
+                    showMessage('Failed to generate code: No valid candidates found in response.', 'error');
+                }
+            } catch (error) {
+                console.error('Error generating code:', error);
+                codeOutput.textContent = 'An error occurred while generating code. Please try again.';
+                showMessage(`Error: ${error.message || 'Failed to connect to API.'}`, 'error');
+            } finally {
+                loadingIndicator.classList.add('hidden'); // Hide loading indicator
+            }
+        });
+
+        // Register the Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // Changed from '/service-worker.js' to './service-worker.js'
+                // for better local file system compatibility.
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.error('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
